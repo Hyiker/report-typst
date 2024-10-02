@@ -1,0 +1,10 @@
+[conf]
+default-lang = "zh"
+
+[zh]
+project-report = "项目报告"
+abstract = "摘要"
+
+[en]
+project-report = "Project Report"
+abstract = "Abstract"
