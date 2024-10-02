@@ -1,8 +1,12 @@
 #import "@preview/linguify:0.4.1": set-database, linguify
 
 // i18n
-// #let lang_data = toml("lang.toml")
-// #set-database(lang_data)
+#let lang_data = toml("lang.toml")
+#set-database(lang_data)
+
+#let i18n(key) = {
+  linguify(key, from: lang_data)
+}
 
 #let buildMainHeader(mainHeadingContent) = {
   [
@@ -60,6 +64,25 @@
   )
 }
 
+#let font-heading() ={
+  let lang = context text.lang
+  if lang == "en" {
+    return ("New Computer Modern")
+  } else {
+    return ("New Computer Modern", "Noto Sans CJK SC")
+  }
+}
+
+
+#let font-body() ={
+  let lang = context text.lang
+  if lang == "en" {
+    return ("New Computer Modern")
+  } else {
+    return ("New Computer Modern", "Noto Serif SC")
+  }
+}
+
 // Project part
 #let project(
   title: "",
@@ -70,34 +93,37 @@
   logo: none,
   abstract: none,
   subject: "",
-  language: "en",
+  language: "zh",
   body,
 ) = {
+  // Set global language
+  set text(lang: language, region: "cn") if language == "zh"
+  set text(lang: language, region: "us") if language == "en"
+   
   // Set the document's basic properties.
   set document(author: authors.map(a => a.name), title: title)
   set page(paper: "a4", margin: (top: 1in, bottom: 1in, left: 1in, right: 1in))
-
-  if (language == "en") {
-    set text(font: "New Computer Modern", lang: "en")
-  } else if (language == "zh") {
-    set text(
-      font: ("New Computer Modern", "Noto Sans CJK SC"),
-      lang: "zh",
-      region: "cn",
-    )
-  } else {
-    panic("Unknown language!")
-  }
+   
+  set text(font: font-heading())
+   
   set par(justify: true)
   // Title row.
   v(.10fr)
-  align(center)[
-    #text(12pt, strong(smallcaps(subject)))
-    \ #text(12pt, strong(smallcaps("")))
-    \ \ #text(30pt, weight: 900, smallcaps(title))
-    \ \ #text(14pt, weight: 200, subtitle)
-  ]
-
+   
+  if language == "en" {
+    align(center)[
+      #text(12pt, strong(smallcaps(subject)))
+      \ \ #text(30pt, weight: 900, smallcaps(title))
+      \ \ #text(14pt, weight: 200, subtitle)
+    ]
+  } else {
+    align(center)[
+      #text(12pt, strong(subject))
+      \ \ #text(36pt, weight: 600, title)
+      \ \ #text(14pt, weight: 500, subtitle)
+    ]
+  }
+   
   pad(top: 2em, for i in range(calc.ceil(authors.len() / 3)) {
     let end = calc.min((i + 1) * 3, authors.len())
     let is-last = authors.len() == end
@@ -106,7 +132,11 @@
       columns: slice.len() * (1fr,),
       gutter: 12pt,
       ..slice.map(author => align(center, {
-        text(12pt, strong(author.name))
+        if language == "en" {
+          text(12pt, strong(author.name))
+        } else {
+          text(12pt, author.name, weight: 500)
+        }
         if "rollno" in author [
           \ #author.rollno
         ]
@@ -118,13 +148,13 @@
         ]
       })),
     )
-
+     
     if not is-last {
       v(16pt, weak: true)
     }
   })
   v(1cm)
-
+   
   v(0.75fr)
   if logo != none {
     align(center)[
@@ -142,15 +172,20 @@
   if abstract != none {
     pagebreak()
     align(right)[
-      #text(34pt, underline(smallcaps(strong("Abstract"))))
+      #text(34pt, underline(smallcaps(strong(i18n("Abstract")))))
     ]
     set par(justify: true)
+    set text(font: font-body())
     abstract
   }
-
+   
   pagebreak()
+   
+  // Main body.
+  set text(font: font-body())
+   
   outline(depth: 3, indent: true)
-
+   
   // Formatting the headings
   // General First and then specific headings
   show heading: it => [
@@ -158,38 +193,40 @@
     #set text(14pt)
     #block(smallcaps(it.body))
   ]
-
+   
   show heading.where(level: 1): it => [
     #pagebreak(weak: true)
     #set align(right)
-    #set text(34pt)
+    #set text(34pt, font: font-heading()) if language == "en"
+    #set text(28pt, font: font-heading()) if language == "zh"
     #underline(extent: 2pt)[
       #block(smallcaps(it.body))
       #v(3em)
     ]
   ]
-
+   
   show heading.where(level: 2): it => [
-    #set text(24pt)
+    #set text(24pt, font: font-heading()) if language == "en"
+    #set text(22pt, font: font-heading()) if language == "zh"
     #block(counter(heading).display() + " " + smallcaps(it.body))
   ]
-
+   
   show heading.where(level: 3): it => [
-    #set text(20pt)
+    #set text(20pt, font: font-heading()) if language == "en"
+    #set text(18pt, font: font-heading()) if language == "zh"
     #block(counter(heading).display() + " " + smallcaps(it.body))
   ]
-
+   
   show heading.where(level: 4): it => [
-    #set text(16pt)
+    #set text(16pt, font: font-heading())
     #block(smallcaps(it.body))
   ]
-
+   
   show heading.where(level: 5): it => [
-    #set text(14pt)
+    #set text(14pt, font: font-heading())
     #block(smallcaps(it.body))
   ]
-
-  // Main body.
+   
   set par(justify: true)
   set heading(numbering: "1.1")
   counter(page).update(1)

@@ -14,6 +14,7 @@
   ),
   department: "College of Computer Science and Technology",
   institute: "WTF University",
+  language: "en"
 )
 
 // We generated the example code below so you can see how

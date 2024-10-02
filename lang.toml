@@ -1,10 +1,10 @@
 [conf]
 default-lang = "zh"
 
-[zh]
+[lang.zh]
 project-report = "项目报告"
-abstract = "摘要"
+Abstract = "摘要"
 
-[en]
+[lang.en]
 project-report = "Project Report"
-abstract = "Abstract"
+Abstract = "Abstract"
